@@ -1,0 +1,30 @@
+name: PR Review API Call
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  call-review-api:
+    name: Call Review API
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Call GraphQL API
+        run: |
+          curl -X POST https://a402-2a02-a03f-66cf-9000-3cc5-c09a-91f4-ea46.ngrok-free.app/graphql \
+            -H "Content-Type: application/json" \
+            -H "ngrok-skip-browser-warning: true" \
+            -d '{
+              "query": "mutation Mutation($input: ReviewPullRequestInput!) { reviewPullRequest(input: $input) { message } }",
+              "variables": {
+                "input": {
+                  "repo": "${{ github.event.repository.name }}",
+                  "owner": "${{ github.event.repository.owner.login }}",
+                  "number": ${{ github.event.pull_request.number }}
+                }
+              }
+            }'
+      
+      - name: Log API Response
+        run: echo "PR review API call completed"
